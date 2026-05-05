@@ -1,17 +1,25 @@
 import { cleanPythonCode } from './cleaner';
 
-// Function to clean the code using the monaco instance
 function cleanMonacoCode() {
   // @ts-ignore
-  const editors = window.monaco?.editor?.getEditors();
+  const monaco = window.monaco;
+  
+  if (!monaco) {
+    // Silent fail for non-editor frames
+    return;
+  }
+
+  console.log('Clash Cleaner: Found Monaco in this frame. Attempting to clean...');
+  const editors = monaco.editor.getEditors();
   if (editors && editors.length > 0) {
-    const editor = editors[0];
-    const currentCode = editor.getValue();
+    const activeEditor = editors.find((e: any) => e.getDomNode()?.offsetParent !== null) || editors[0];
+    
+    const currentCode = activeEditor.getValue();
     const cleanedCode = cleanPythonCode(currentCode);
-    editor.setValue(cleanedCode);
+    activeEditor.setValue(cleanedCode);
     console.log('Clash Cleaner: Code cleaned successfully.');
   } else {
-    console.error('Clash Cleaner: Could not find Monaco editor instance.');
+    console.error('Clash Cleaner: Monaco found, but no editors are active in this frame.');
   }
 }
 

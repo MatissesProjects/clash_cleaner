@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild src/content.ts src/page_script.ts --bundle --outdir=dist --target=chrome100",
-    "watch": "esbuild src/content.ts src/page_script.ts --bundle --outdir=dist --target=chrome100 --watch",
+    "build": "esbuild src/content.ts src/page_script.ts src/background.ts --bundle --outdir=dist --target=chrome100",
+    "watch": "esbuild src/content.ts src/page_script.ts src/background.ts --bundle --outdir=dist --target=chrome100 --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -7,15 +7,20 @@
     "activeTab",
     "scripting"
   ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
   "content_scripts": [
     {
       "matches": [
-        "*://*.codingame.com/*"
+        "*://*.codingame.com/*",
+        "*://*.codingame-app.com/*"
       ],
       "js": [
         "dist/content.js"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
   "web_accessible_resources": [
@@ -24,7 +29,8 @@
         "dist/page_script.js"
       ],
       "matches": [
-        "*://*.codingame.com/*"
+        "*://*.codingame.com/*",
+        "*://*.codingame-app.com/*"
       ]
     }
   ]
