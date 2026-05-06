@@ -1,10 +1,3 @@
-import { cleanPythonCode } from './cleaner';
-
-/**
- * CodinGame uses Monaco editor. We can often access it via the global window object
- * or by interacting with the DOM elements.
- */
-
 function injectCleanButton() {
   // Only inject the button in the top-most frame to avoid duplicates
   if (window !== window.top) return;
@@ -57,28 +50,41 @@ function injectCleanButton() {
   btn.onclick = (e) => {
     e.preventDefault();
     console.log('Clash Cleaner: Triggering clean across all frames.');
-    chrome.runtime.sendMessage({ action: 'TRIGGER_CLEAN' });
+    try {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'TRIGGER_CLEAN' });
+      } else {
+        // Fallback for context loss: directly trigger local event
+        console.warn('Clash Cleaner: chrome.runtime not available, triggering local only.');
+        window.dispatchEvent(new CustomEvent('CLASH_CLEANER_TRIGGER'));
+      }
+    } catch (err) {
+      console.error('Clash Cleaner: Failed to send message:', err);
+      window.dispatchEvent(new CustomEvent('CLASH_CLEANER_TRIGGER'));
+    }
   };
 }
 
-// Inject the page script in EVERY frame
 function injectPageScript() {
   if (document.getElementById('clash-cleaner-script')) return;
   
-  console.log('Clash Cleaner: Injecting page script into frame: ' + window.location.href);
   const script = document.createElement('script');
   script.id = 'clash-cleaner-script';
-  script.src = chrome.runtime.getURL('dist/page_script.js');
-  (document.head || document.documentElement).appendChild(script);
+  try {
+    script.src = chrome.runtime.getURL('dist/page_script.js');
+    (document.head || document.documentElement).appendChild(script);
+  } catch (e) {
+    console.error('Clash Cleaner: Failed to inject page script:', e);
+  }
 }
 
-// Listen for messages from the background script
-chrome.runtime.onMessage.addListener((request) => {
-  if (request.action === 'TRIGGER_CLEAN') {
-    console.log('Clash Cleaner: Frame received TRIGGER_CLEAN, dispatching local event.');
-    window.dispatchEvent(new CustomEvent('CLASH_CLEANER_TRIGGER'));
-  }
-});
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+  chrome.runtime.onMessage.addListener((request) => {
+    if (request.action === 'TRIGGER_CLEAN') {
+      window.dispatchEvent(new CustomEvent('CLASH_CLEANER_TRIGGER'));
+    }
+  });
+}
 
 injectPageScript();
 const observer = new MutationObserver(() => injectCleanButton());
